@@ -5,7 +5,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
 
 def split_data(X, y, test_size=0.2, random_state=42, stratify=None):
@@ -157,20 +156,3 @@ def train_model(model, X_train_encoder, y_train_log, X_test_encoder, y_test):
 
     return model
 
-def evaluate_model(model, X_test_encoder, y_test_raw):
-    y_pred_log = model.predict(X_test_encoder)
-
-    # inversion de la transformation pour evaluer
-    y_pred = np.expm1(y_pred_log)
-    rmse = np.sqrt(mean_squared_error(y_test_raw, y_pred))
-
-    mae = mean_absolute_error(y_test_raw, y_pred)
-    r2 = r2_score(y_test_raw, y_pred)
-
-    return {
-        'model_name': model.__class__.__name__,
-        'rmse': rmse,
-        'mae': mae,
-        'r2': r2,
-        'y_pred_original': y_pred
-    }
