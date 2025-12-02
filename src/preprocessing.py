@@ -43,20 +43,17 @@ def preprocess_dior(df):
     # les colonnes à supprimer
     cols_to_drop = [
         'website_name', 'competence_date', 'country_code', 'currency_code',
-        'brand', 'flg_discount', 'full_price', 'full_price_eur',
-        'product_code', 'itemurl', 'imageurl'
+        'brand', 'flg_discount', 'full_price', 'full_price_eur','price_eur',
+        'product_code', 'itemurl', 'imageurl', 'title'
     ]
     df = df.drop(columns=cols_to_drop)
 
     # Supprimer la ligne avec une valeur manquante dans category3_code
     df['category3_code'] = df['category3_code'].replace('N.A.', np.nan)
     df = df.dropna(subset=['category3_code'])
-
-    cols_for_model_drop = ['title']
     
     # Separer les targets
-    features = df.drop(columns=cols_for_model_drop + ['price', 'price_eur'])
-    targets = df[['price', 'price_eur']]
+    features = df.drop(columns=['price'])
+    targets = df[['price']]
 
     return features, targets
-
