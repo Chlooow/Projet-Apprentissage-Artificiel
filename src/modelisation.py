@@ -151,6 +151,22 @@ def count_encoding(X_train, X_test, col):
 
     return X_train_encoded, X_test_encoded, counts
 
+def target_encoding(X_train, X_test, target, col):
+    # Moyenne de la target par catégorie (calculée sur le train uniquement)
+    mapping = X_train.join(target).groupby(col)[target.name].mean()
+
+    # Remplacement dans le train
+    X_train_encoded = X_train.copy()
+    X_train_encoded[col] = X_train[col].map(mapping)
+
+    # Remplacement dans le test (avec fallback sur la moyenne globale)
+    global_mean = target.mean()
+    X_test_encoded = X_test.copy()
+    X_test_encoded[col] = X_test[col].map(mapping).fillna(global_mean)
+
+    return X_train_encoded, X_test_encoded, mapping
+
+
 def train_model(model, X_train_encoder, y_train_log, X_test_encoder, y_test):
     model.fit(X_train_encoder, y_train_log)
 
