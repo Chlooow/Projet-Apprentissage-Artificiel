@@ -1,0 +1,18 @@
+# Machine Learning et Modélisation
+scikit-learn==1.3.2  # Anciennement 'sklearn'
+xgboost==2.0.2
+
+# Manipulation et Analyse de Données
+numpy==1.26.2
+pandas==2.1.4
+
+# Visualisation des Données
+matplotlib==3.8.2
+seaborn==0.13.1
+
+# Chargement de jeux de données (Hugging Face)
+datasets==2.15.0
+
+# Dépendances communes supplémentaires
+tqdm==4.66.1  # Barre de progression
+jupyterlab==4.0.9 # Si vous travaillez dans un environnement Jupyter

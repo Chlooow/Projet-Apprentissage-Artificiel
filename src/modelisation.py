@@ -166,7 +166,6 @@ def target_encoding(X_train, X_test, target, col):
 
     return X_train_encoded, X_test_encoded, mapping
 
-
 def train_model(model, X_train_encoder, y_train_log, X_test_encoder, y_test):
     model.fit(X_train_encoder, y_train_log)
 
