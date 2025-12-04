@@ -58,7 +58,7 @@ Vendredi 5/12/25 00h
 
 ## Soutenance 
 
-1Mercredi 10/12/25
+Mercredi 10/12/25
 
 ## Outils & Technologies utilisés
 
