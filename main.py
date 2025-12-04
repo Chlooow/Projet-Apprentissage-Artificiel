@@ -2,11 +2,13 @@
 # MAIN.PY
 ####################
 
+print('___ START OF PROJECT : DIOR CHINA PRICE PREDICTION ___\n')
 # ID
+print('\n___ ID ETUDIANT ___\n')
 
 nom = "Makoundou"
 prenom = "Nsonde Chloe"
-stud_numb = ""
+stud_numb = "82506363"
 
 print(nom)
 print(prenom)
@@ -18,6 +20,7 @@ print(stud_numb)
 import sys
 import os
 import numpy as np
+import pandas as pd
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
 # Model de regression lineaire 
@@ -26,17 +29,22 @@ from sklearn.linear_model import LinearRegression
 # Model de Random Forest 
 from sklearn.ensemble import RandomForestRegressor
 
-#Modelisation avec XGBoost
+# Modelisation avec XGBoost
 from xgboost import XGBRegressor
+
+
 
 sys.path.append(os.path.abspath("./src"))
 
 # Chargement du dataset
 from load_data import load_dior
 
+print('\n___ Loading the Data : Dior China ___\n')
 df = load_dior()
 print("Dataset loaded successfully.")
 print(f"Dataset shape: {df.shape}")
+
+print('\n___ Loading the Data : Dior China - Completed ! ___\n')
 
 # Preprocessing
 from preprocessing import preprocess_dior
@@ -53,8 +61,11 @@ from modelisation import (
     target_encoding,
     train_model
 )
-
+# Clustering
+from bonus import run_clustering
 # -----------------------
+
+print('\n___ Preprocessing ___\n')
 
 # Nettoyer et séparer features et targets
 X, y = preprocess_dior(df)
@@ -69,14 +80,17 @@ print("Taille de y:", y.shape)
 print("Colonnes X :", X.columns.tolist())
 print("Colonnes y :", y.columns.tolist())
 
+print('\n___ END of Preprocessing ___\n')
+
 
 # -----------------------
 
 # modelisation
-
+print('\n___ Modelisation : Splitting ___\n')
 # Splitting
 X_train, X_test, y_train, y_test = split_data(X, y, test_size=0.2)
 
+print('\n___ Modelisation : Log Transform ___\n')
 # transformation en log
 y_train_transformed, y_test_transformed, transform_info = transform_target(
     y_train, 
@@ -86,6 +100,7 @@ y_train_transformed, y_test_transformed, transform_info = transform_target(
 
 # -----------------------
 
+print('\n___ Encodage ___\n')
 # Encodage
 # Encodage Linear Regression
 X_train_encoder_LR, X_test_encoder_LR, enc1 = ohe_encoding(X_train, X_test, "category1_code")
@@ -102,23 +117,27 @@ X_train_encoder_GB, X_test_encoder_GB, enc7 = count_encoding(X_train, X_test, "c
 X_train_encoder_GB, X_test_encoder_GB, enc8 = count_encoding(X_train_encoder_GB, X_test_encoder_GB, "category2_code")
 X_train_encoder_GB, X_test_encoder_GB, enc9 = count_encoding(X_train_encoder_GB, X_test_encoder_GB, "category3_code")
 
-
+print('\n___ Encodage : Linear Regression - ohe, count, count ___\n')
 # verifications LR
 print(X_train_encoder_LR.columns[:20])
 print(X_train_encoder_LR.shape)
 print(X_test_encoder_LR.shape)
 
+print('\n___ Encodage : Random Forest - ohe, count, count ___\n')
 # Verification RF
 print(X_train_encoder_RF.columns[:20])
 print(X_train_encoder_RF.shape)
 print(X_test_encoder_RF.shape)
 
+print('\n___ Encodage : Gradient Boost - count, count, count ___\n')
 # Verification GB
 print(X_train_encoder_GB.columns[:20])
 print(X_train_encoder_GB.shape)
 print(X_test_encoder_GB.shape)
 
 # Entrainement, Test, prediction
+print('\n___ Entrainement, Test : Linear Regression ___\n')
+
 model_LR = LinearRegression()
 
 # Training 
@@ -130,6 +149,7 @@ model_LR_trained = train_model(
     y_test_transformed
 )
 
+print('\n___ Entrainement, Test : Random Forest ___\n')
 # Entrainement, Test, prediction
 model_RF = RandomForestRegressor(oob_score=True)
 
@@ -137,11 +157,12 @@ model_RF = RandomForestRegressor(oob_score=True)
 model_RF_trained = train_model(
     model_RF, 
     X_train_encoder_RF, 
-    y_train_transformed, 
+    y_train_transformed.values.ravel(), 
     X_test_encoder_RF, 
     y_test_transformed
 )
 
+print('\n___ Entrainement, Test : Gradient Boost ___\n')
 # Entrainement, Test, prediction
 model_GB = XGBRegressor()
 
@@ -149,7 +170,7 @@ model_GB = XGBRegressor()
 model_GB_trained = train_model(
     model_GB, 
     X_train_encoder_GB, 
-    y_train_transformed, 
+    y_train_transformed.values.ravel(), 
     X_test_encoder_GB, 
     y_test_transformed
 )
@@ -157,6 +178,7 @@ model_GB_trained = train_model(
 # -----------------------
 
 # Evaluate
+print('\n___ Evaluation : Linear Regression ___\n')
 
 # Regression Lineaire
 
@@ -192,9 +214,9 @@ print(f"R²   : {evaluation_results_LR['r2']:.4f}")
 # ------
 
 # Random Forest
-
+print('\n___ Evaluation : Random Forest ___\n')
 # Train 
-print(model_RF_trained.oob_score_)
+print('oob score = ',model_RF_trained.oob_score_)
 # Prédictions sur le train
 y_train_pred_log_RF = model_RF_trained.predict(X_train_encoder_RF)
 
@@ -226,7 +248,7 @@ print(f"R²   : {evaluation_results_RF['r2']:.4f}")
 # ------
 
 # Gradient Boost
-
+print('\n___ Evaluation : Gadient Boosting ___\n')
 # Prédictions sur le train
 y_train_pred_log_GB = model_GB_trained.predict(X_train_encoder_GB)
 
@@ -254,3 +276,26 @@ print(f"Modèle : {evaluation_results_GB['model_name']}")
 print(f"RMSE : {evaluation_results_GB['rmse']:,.2f}")
 print(f"MAE  : {evaluation_results_GB['mae']:,.2f}")
 print(f"R²   : {evaluation_results_GB['r2']:.4f}")
+
+# -----------------------
+# Bonus : Approche Non Supervisée + Supervisée
+print('\n___ BONUS : Clustering ___\n')
+clustering_features = X_train_encoder_GB.copy()
+# cols_to_drop_clustering = ['category1_code', 'categor2_code', 'category3_code']
+# X_clustering_final = clustering_features.drop(columns=)
+
+df_analysis = clustering_features.join(y_train.reset_index(drop=True))
+cluster_summary, cluster_labels, kmeans_model = run_clustering(
+    clustering_features,
+    df_analysis.rename(columns={'price': 'price_original'}),
+    n_clusters=3
+)
+print("\nProfils des Segments de Produits (K=3) :")
+print(cluster_summary)
+
+X_train_segmented = X_train_encoder_GB.copy()
+X_train_segmented['cluster_id'] = cluster_labels
+
+print('\n___ BONUS : Clustering finished ___\n')
+
+print('\n___ END OF PROJECT ___\n')
