@@ -50,6 +50,7 @@ from preprocessing import preprocess_dior
 from evaluate import(
     evaluate_model,
     # run_segmented_regression
+    extract_feature_importance
 )
 
 from modelisation import (
@@ -223,7 +224,7 @@ y_train_pred_log_RF = model_RF_trained.predict(X_train_encoder_RF)
 y_train_pred_RF = np.expm1(y_train_pred_log_RF)
 
 # Calcul des métriques
-rmse_train = np.sqrt(mean_squared_error(y_train, y_train_pred_log_RF))
+rmse_train = np.sqrt(mean_squared_error(y_train, y_train_pred_RF))
 mae_train = mean_absolute_error(y_train, y_train_pred_RF)
 r2_train = r2_score(y_train, y_train_pred_RF)
 
@@ -255,7 +256,7 @@ y_train_pred_log_GB = model_GB_trained.predict(X_train_encoder_GB)
 y_train_pred_GB = np.expm1(y_train_pred_log_GB)
 
 # Calcul des métriques
-rmse_train = np.sqrt(mean_squared_error(y_train, y_train_pred_log_GB))
+rmse_train = np.sqrt(mean_squared_error(y_train, y_train_pred_GB))
 mae_train = mean_absolute_error(y_train, y_train_pred_GB)
 r2_train = r2_score(y_train, y_train_pred_GB)
 
@@ -309,4 +310,21 @@ print(f"R² (Test) : {segment_results['R2']:.4f}")
 print(f"RMSE (Test) : {segment_results['RMSE']:.2f}")
 print(f"MAE (Test) : {segment_results['MAE']:.2f}")
 
+
+print('\n___ ANALYSE : Importance des Caractéristiques par Segment ___\n')
+
+feature_names = X_train_encoder_GB.columns 
+
+importance_results = extract_feature_importance(segmented_models, feature_names)
+
+print("\n--- Importance des Caractéristiques par Segment (Top 5) ---")
+for cluster_id, top_features in importance_results.items():
+    prix_moyen = cluster_summary.loc[cluster_id, 'Prix Moyen']
+    
+    print(f"\nCluster {cluster_id} (Prix Moyen : {prix_moyen:,.0f} CNY) :")
+    for feature, importance in top_features.items():
+        print(f"  - {feature}: {importance:.4f}")
+
+# -----------------------
 print('\n___ END OF PROJECT ___\n')
+

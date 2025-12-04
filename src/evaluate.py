@@ -24,6 +24,20 @@ def evaluate_model(model, X_test_encoder, y_test_raw):
         'y_pred_original': y_pred
     }
 
+def extract_feature_importance(segmented_models, feature_names):
+    """Extrait les 5 premières caractéristiques les plus importantes pour chaque modèle segmenté."""
+    importance_summary = {}
+    
+    for cluster_id, model in segmented_models.items():
+        # Récupération des importances
+        importances = model.feature_importances_
+        feature_importances = pd.Series(importances, index=feature_names)
+        
+        # Sélection du TOP 5 des caractéristiques
+        top_features = feature_importances.sort_values(ascending=False).head(5)
+        importance_summary[cluster_id] = top_features
+        
+    return importance_summary
 
 # plots
 def plot_actual_vs_predicted(y_test_original, y_pred, model_name):
