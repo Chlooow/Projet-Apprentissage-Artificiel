@@ -25,7 +25,6 @@ def plot_price_distribution(df, column="price"):
     plt.title(f"Boxplot de {column}")
     plt.show()
 
-
 # Nombre de produits par catégorie
 def plot_category_counts(df, column):
     plt.figure(figsize=(10,5))

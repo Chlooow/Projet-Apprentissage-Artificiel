@@ -32,8 +32,6 @@ from sklearn.ensemble import RandomForestRegressor
 # Modelisation avec XGBoost
 from xgboost import XGBRegressor
 
-
-
 sys.path.append(os.path.abspath("./src"))
 
 # Chargement du dataset
@@ -41,7 +39,7 @@ from load_data import load_dior
 
 print('\n___ Loading the Data : Dior China ___\n')
 df = load_dior()
-print("Dataset loaded successfully.")
+print("Dataset loaded successfully !")
 print(f"Dataset shape: {df.shape}")
 
 print('\n___ Loading the Data : Dior China - Completed ! ___\n')
@@ -51,7 +49,7 @@ from preprocessing import preprocess_dior
 
 from evaluate import(
     evaluate_model,
-    run_segmented_regression
+    # run_segmented_regression
 )
 
 from modelisation import (
@@ -63,7 +61,7 @@ from modelisation import (
     train_model
 )
 # Clustering
-from bonus import run_clustering
+from bonus import run_clustering, run_segmented_regression
 # -----------------------
 
 print('\n___ Preprocessing ___\n')
@@ -282,12 +280,11 @@ print(f"R²   : {evaluation_results_GB['r2']:.4f}")
 # Bonus : Approche Non Supervisée + Supervisée
 
 print('\n___ BONUS : Clustering ___\n')
+
 clustering_features = X_train_encoder_GB.copy()
-# cols_to_drop_clustering = ['category1_code', 'categor2_code', 'category3_code']
-# X_clustering_final = clustering_features.drop(columns=)
 
 df_analysis = clustering_features.join(y_train.reset_index(drop=True))
-cluster_summary, cluster_labels, kmeans_model = run_clustering(
+cluster_summary, cluster_labels, kmeans_model, scaler = run_clustering(
     clustering_features,
     df_analysis.rename(columns={'price': 'price_original'}),
     n_clusters=3
@@ -295,24 +292,21 @@ cluster_summary, cluster_labels, kmeans_model = run_clustering(
 print("\nProfils des Segments de Produits (K=3) :")
 print(cluster_summary)
 
-X_train_segmented = X_train_encoder_GB.copy()
-clustering_features_cols = X_train_encoder_GB.columns.tolist()
-X_test_features = X_test_encoder_GB[clustering_features_cols].copy()
+# -----------
 
-test_labels = kmeans_model.predict(X_test_features)
-
-X_test_segmented = X_test_features.copy()
-X_test_segmented['cluster_id'] = pd.Series(test_labels, index=X_test_segmented.index)
-
-X_train_segmented['cluster_id'] = cluster_labels
-
-models_segmented, y_test_preds_list, y_test_raw_list, final_features = run_segmented_regression(
-    X_train_segmented=X_train_segmented,
-    X_test_segmented=X_test_segmented,
-    y_train_transformed=y_train_transformed,
-    y_test=y_test,
-    n_clusters=3,
-    model_class=RandomForestRegressor 
+segment_results, segmented_models = run_segmented_regression(
+    X_train=X_train_encoder_GB, 
+    y_train=y_train, 
+    X_test=X_test_encoder_GB, 
+    y_test=y_test, 
+    cluster_labels_train=cluster_labels, 
+    kmeans_model=kmeans_model, 
+    scaler=scaler
 )
+
+print("\n Métriques Globales sur le jeu de Test (Approche Segmentée)")
+print(f"R² (Test) : {segment_results['R2']:.4f}")
+print(f"RMSE (Test) : {segment_results['RMSE']:.2f}")
+print(f"MAE (Test) : {segment_results['MAE']:.2f}")
 
 print('\n___ END OF PROJECT ___\n')

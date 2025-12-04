@@ -8,11 +8,15 @@ pandas==2.1.4
 
 # Visualisation des Données
 matplotlib==3.8.2
+matplotlib-inline==0.1.7
 seaborn==0.13.1
-
+huggingface-hub==0.28.1
 # Chargement de jeux de données (Hugging Face)
 datasets==2.15.0
 
 # Dépendances communes supplémentaires
 tqdm==4.66.1  # Barre de progression
 jupyterlab==4.0.9 # Si vous travaillez dans un environnement Jupyter
+xgboost==2.0.3
+streamlit==1.51.0
+datasets==3.4.1

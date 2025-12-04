@@ -34,9 +34,6 @@ import numpy as np
 def preprocess_dior(df):
     """ 
     cette fonction permet de nettoyer notre dataset actuelle
-    Returns:
-        df_features: DataFrame des features prêtes pour le modèle
-        df_targets: DataFrame avec les colonnes 'price' et 'price_eur'
     """
     df = df.copy()
 

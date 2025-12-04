@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.preprocessing import StandardScaler
 
-
+# Fonction de split Data
 def split_data(X, y, test_size=0.2, random_state=42, stratify=None):
     X_train, X_test, y_train, y_test = train_test_split(
         X,
@@ -22,6 +22,7 @@ def split_data(X, y, test_size=0.2, random_state=42, stratify=None):
     
     return X_train, X_test, y_train, y_test
 
+# Transformation de la cible avec log
 def transform_target(y_train, y_test, method='log'):
     transform_info = {'method': method}
     
@@ -34,7 +35,7 @@ def transform_target(y_train, y_test, method='log'):
     elif method == 'sqrt':
         y_train_transformed = np.sqrt(y_train)
         y_test_transformed = np.sqrt(y_test)
-        print(f"Transformation: √prix")
+        print(f"Transformation: sqrt(prix)")
         
     elif method == 'standardize':
         scaler = StandardScaler()
@@ -48,6 +49,7 @@ def transform_target(y_train, y_test, method='log'):
     
     return y_train_transformed, y_test_transformed, transform_info
 
+# remet la cible en normal
 def inverse_transform_target(y_pred, transform_info):
     method = transform_info['method']
     
@@ -61,6 +63,67 @@ def inverse_transform_target(y_pred, transform_info):
     
     return y_pred
 
+# les encoders
+def ohe_encoding(X_train, X_test, col):
+    X_train_encoded = X_train.copy()
+    X_test_encoded = X_test.copy()
+
+    encoder = OneHotEncoder(sparse_output=False, handle_unknown='ignore')
+
+    # fit_transform uniquement sur X_train
+    train_encoded = encoder.fit_transform(X_train[[col]])
+    test_encoded = encoder.transform(X_test[[col]])
+
+    feature_names = [f"{col}_{cat}" for cat in encoder.categories_[0]]
+
+    train_df = pd.DataFrame(train_encoded, columns=feature_names, index=X_train_encoded.index)
+    test_df = pd.DataFrame(test_encoded, columns=feature_names, index=X_test_encoded.index)
+
+    # Supprimer la colonne originale
+    X_train_encoded = X_train_encoded.drop(columns=[col])
+    X_test_encoded = X_test_encoded.drop(columns=[col])
+
+    X_train_encoded = pd.concat([X_train_encoded, train_df], axis=1)
+    X_test_encoded = pd.concat([X_test_encoded, test_df], axis=1)
+    
+    return X_train_encoded, X_test_encoded, encoder
+
+def count_encoding(X_train, X_test, col):
+    X_train_encoded = X_train.copy()
+    X_test_encoded = X_test.copy()
+
+    counts = X_train[col].value_counts()
+
+    # Encodage train
+    X_train_encoded[col + "_count"] = X_train[col].map(counts)
+
+    X_test_encoded[col + "_count"] = X_test[col].map(counts).fillna(0)
+
+    X_train_encoded = X_train_encoded.drop(columns=[col])
+    X_test_encoded = X_test_encoded.drop(columns=[col])
+
+    return X_train_encoded, X_test_encoded, counts
+
+def target_encoding(X_train, X_test, target, col):
+    # Moyenne de la target par catégorie
+    mapping = X_train.join(target).groupby(col)[target.name].mean()
+
+    X_train_encoded = X_train.copy()
+    X_train_encoded[col] = X_train[col].map(mapping)
+
+    global_mean = target.mean()
+    X_test_encoded = X_test.copy()
+    X_test_encoded[col] = X_test[col].map(mapping).fillna(global_mean)
+
+    return X_train_encoded, X_test_encoded, mapping
+
+# Entrainement du model
+def train_model(model, X_train_encoder, y_train_log, X_test_encoder, y_test):
+    model.fit(X_train_encoder, y_train_log)
+
+    return model
+
+# plots 
 def plot_train_test_split(y_train, y_test, title="Répartition Train/Test"):
 
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
@@ -107,67 +170,3 @@ def plot_target_transformation(y, method='log'):
     plt.show()
 
     return y_trans
-
-def ohe_encoding(X_train, X_test, col):
-    X_train_encoded = X_train.copy()
-    X_test_encoded = X_test.copy()
-
-    encoder = OneHotEncoder(sparse_output=False, handle_unknown='ignore')
-
-    # fit_transform uniquement sur X_train
-    train_encoded = encoder.fit_transform(X_train[[col]])
-    test_encoded = encoder.transform(X_test[[col]])
-
-    feature_names = [f"{col}_{cat}" for cat in encoder.categories_[0]]
-
-    train_df = pd.DataFrame(train_encoded, columns=feature_names, index=X_train_encoded.index)
-    test_df = pd.DataFrame(test_encoded, columns=feature_names, index=X_test_encoded.index)
-
-    # Supprimer la colonne originale
-    X_train_encoded = X_train_encoded.drop(columns=[col])
-    X_test_encoded = X_test_encoded.drop(columns=[col])
-
-    X_train_encoded = pd.concat([X_train_encoded, train_df], axis=1)
-    X_test_encoded = pd.concat([X_test_encoded, test_df], axis=1)
-    
-    return X_train_encoded, X_test_encoded, encoder
-
-def count_encoding(X_train, X_test, col):
-    X_train_encoded = X_train.copy()
-    X_test_encoded = X_test.copy()
-
-    # Comptage sur le train uniquement
-    counts = X_train[col].value_counts()
-
-    # Encodage train
-    X_train_encoded[col + "_count"] = X_train[col].map(counts)
-
-    # Encodage test (catégories inconnues -> 0)
-    X_test_encoded[col + "_count"] = X_test[col].map(counts).fillna(0)
-
-    # On peut supprimer la colonne originale si tu veux
-    X_train_encoded = X_train_encoded.drop(columns=[col])
-    X_test_encoded = X_test_encoded.drop(columns=[col])
-
-    return X_train_encoded, X_test_encoded, counts
-
-def target_encoding(X_train, X_test, target, col):
-    # Moyenne de la target par catégorie (calculée sur le train uniquement)
-    mapping = X_train.join(target).groupby(col)[target.name].mean()
-
-    # Remplacement dans le train
-    X_train_encoded = X_train.copy()
-    X_train_encoded[col] = X_train[col].map(mapping)
-
-    # Remplacement dans le test (avec fallback sur la moyenne globale)
-    global_mean = target.mean()
-    X_test_encoded = X_test.copy()
-    X_test_encoded[col] = X_test[col].map(mapping).fillna(global_mean)
-
-    return X_train_encoded, X_test_encoded, mapping
-
-def train_model(model, X_train_encoder, y_train_log, X_test_encoder, y_test):
-    model.fit(X_train_encoder, y_train_log)
-
-    return model
-
