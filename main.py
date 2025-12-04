@@ -50,7 +50,8 @@ print('\n___ Loading the Data : Dior China - Completed ! ___\n')
 from preprocessing import preprocess_dior
 
 from evaluate import(
-    evaluate_model
+    evaluate_model,
+    run_segmented_regression
 )
 
 from modelisation import (
@@ -279,6 +280,7 @@ print(f"R²   : {evaluation_results_GB['r2']:.4f}")
 
 # -----------------------
 # Bonus : Approche Non Supervisée + Supervisée
+
 print('\n___ BONUS : Clustering ___\n')
 clustering_features = X_train_encoder_GB.copy()
 # cols_to_drop_clustering = ['category1_code', 'categor2_code', 'category3_code']
@@ -294,8 +296,23 @@ print("\nProfils des Segments de Produits (K=3) :")
 print(cluster_summary)
 
 X_train_segmented = X_train_encoder_GB.copy()
+clustering_features_cols = X_train_encoder_GB.columns.tolist()
+X_test_features = X_test_encoder_GB[clustering_features_cols].copy()
+
+test_labels = kmeans_model.predict(X_test_features)
+
+X_test_segmented = X_test_features.copy()
+X_test_segmented['cluster_id'] = pd.Series(test_labels, index=X_test_segmented.index)
+
 X_train_segmented['cluster_id'] = cluster_labels
 
-print('\n___ BONUS : Clustering finished ___\n')
+models_segmented, y_test_preds_list, y_test_raw_list, final_features = run_segmented_regression(
+    X_train_segmented=X_train_segmented,
+    X_test_segmented=X_test_segmented,
+    y_train_transformed=y_train_transformed,
+    y_test=y_test,
+    n_clusters=3,
+    model_class=RandomForestRegressor 
+)
 
 print('\n___ END OF PROJECT ___\n')

@@ -171,19 +171,3 @@ def train_model(model, X_train_encoder, y_train_log, X_test_encoder, y_test):
 
     return model
 
-def run_segmented_regression(X_train_segmented, X_test_segmented, y_train_transformed, y_test, n_clusters=3, model_class):
-    models_segmented = {}
-    y_test_preds_list = []
-    y_test_raw_list = []
-
-    final_features = X_train_segmented.columns.drop(['cluster_id'])
-    for k in range(n_clusters):
-        X_train_k = X_train_segmented[X_train_segmented['cluster_id'] == k].drop(columns=['cluster_id'])
-        y_train_k_log = y_train_transformed.loc[X_train_k.index]
-
-        model_k = model_class(n_estimators=100, random_state=42, n_jobs=-1)
-        model_k.fit(X_train_k, y_train_k_log.values.ravel()) 
-        models_segmented[k] = model_k
-
-        X_test_k = X_test_segmented[X_test_segmented['cluster_id'] == k].drop(columns=['cluster_id'])
-        y_test_k = y_test.loc[X_test_k.index]

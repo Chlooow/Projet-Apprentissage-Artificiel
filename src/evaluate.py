@@ -2,7 +2,9 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import numpy as np
 import seaborn as sns
+import pandas as pd
 from sklearn.model_selection import learning_curve
+from sklearn.ensemble import RandomForestRegressor
 
 def evaluate_model(model, X_test_encoder, y_test_raw):
     y_pred_log = model.predict(X_test_encoder)
@@ -21,6 +23,49 @@ def evaluate_model(model, X_test_encoder, y_test_raw):
         'r2': r2,
         'y_pred_original': y_pred
     }
+
+def run_segmented_regression(X_train_segmented, X_test_segmented, y_train_transformed, y_test, n_clusters=3, model_class=RandomForestRegressor):
+    models_segmented = {}
+    y_test_preds_list = []
+    y_test_raw_list = []
+
+    final_features = X_train_segmented.columns.drop(['cluster_id'])
+    for k in range(n_clusters):
+        X_train_k = X_train_segmented[X_train_segmented['cluster_id'] == k].drop(columns=['cluster_id'])
+        y_train_k_log = y_train_transformed.loc[X_train_k.index]
+
+        if X_train_k.empty:
+            print(f"ATTENTION: Le Segment {k} est vide dans le jeu d'ENTRAÎNEMENT. Ignoré.")
+            continue
+
+        model_k = model_class(n_estimators=100, random_state=42, n_jobs=-1)
+        model_k.fit(X_train_k, y_train_k_log.values.ravel()) 
+        models_segmented[k] = model_k
+
+        X_test_k = X_test_segmented[X_test_segmented['cluster_id'] == k].drop(columns=['cluster_id'])
+        y_test_k = y_test.loc[X_test_k.index]
+
+        if X_test_k.empty:
+            print(f"ATTENTION: Le Segment {k} est vide dans le jeu de TEST. Skippé pour l'évaluation.")
+            continue # Passe à l'itération suivante
+
+        evaluation_results_k = evaluate_model(
+            model=model_k, 
+            X_test_encoder=X_test_k,
+            y_test_raw=y_test_k
+        )
+
+        y_pred_original_k = pd.Series(evaluation_results_k['y_pred_original'], index=y_test_k.index)
+        y_test_preds_list.append(y_pred_original_k)
+        y_test_raw_list.append(y_test_k)
+
+        # Affichage pour le suivi
+        print(f"RMSE Segment {k} : {evaluation_results_k['rmse']:,.2f} (Taille: {len(X_test_k)} échantillons)")
+
+    y_test_preds_segmented = pd.concat(y_test_preds_list).sort_index()
+    y_test_raw_global = pd.concat(y_test_raw_list).sort_index()
+
+    return models_segmented, y_test_preds_segmented, y_test_raw_global, final_features
 
 def plot_actual_vs_predicted(y_test_original, y_pred, model_name):
     plt.figure(figsize=(10, 6))
