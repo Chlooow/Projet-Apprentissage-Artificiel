@@ -2,10 +2,10 @@
 Dans le cadre du cours Apprentissage Artificiel 2025-2026
 
 ## Informations
-**Chef de projet etudiant:** Chloé Nsonde Makoundou 
-**Manager** : Madame Rakia Jaziri
-**Formation** : Master 1 IBD - Université Paris 8 Saint-Denis-Vincennes
-**type de projet**: individuel
+- **Chef de projet etudiant:** Chloé Nsonde Makoundou 
+- **Manager** : Madame Rakia Jaziri
+- **Formation** : Master 1 IBD - Université Paris 8 Saint-Denis-Vincennes
+- **type de projet**: individuel
 
 ## Problématique
 
