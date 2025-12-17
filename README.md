@@ -54,6 +54,9 @@ https://www.databoutique.com/buy-data-page/dior+product-prices+china/r/recjNQrDO
 
 ``` python3 main.py ou python main.py ```
 
+Pour l'interface 
+``` python -m streamlit run app.py```
+
 ## Rendu
 
 Vendredi 5/12/25 00h
