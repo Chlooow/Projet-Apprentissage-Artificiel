@@ -19,6 +19,7 @@ print(stud_numb)
 # Imports
 import sys
 import os
+import joblib
 import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
@@ -30,6 +31,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
 
 # Modelisation avec XGBoost
+from sklearn.preprocessing import OneHotEncoder
 from xgboost import XGBRegressor
 
 sys.path.append(os.path.abspath("./src"))
@@ -328,3 +330,18 @@ for cluster_id, top_features in importance_results.items():
 # -----------------------
 print('\n___ END OF PROJECT ___\n')
 
+os.makedirs("artifacts", exist_ok=True)
+
+# Sauvegarde du Random Forest
+joblib.dump(model_RF_trained, "artifacts/model_rf.pkl")
+joblib.dump(enc4, "artifacts/count_rf_cat1.pkl")
+joblib.dump(enc5, "artifacts/count_rf_cat2.pkl")
+joblib.dump(enc6, "artifacts/count_rf_cat3.pkl")
+print("Modèle Random Forest et encodages sauvegardés")
+
+joblib.dump(model_GB_trained, "artifacts/model_gb.pkl")
+joblib.dump(enc7, "artifacts/count_cat1.pkl")
+joblib.dump(enc8, "artifacts/count_cat2.pkl")
+joblib.dump(enc9, "artifacts/count_cat3.pkl")
+joblib.dump(transform_info, "artifacts/target_transform.pkl")
+print("Modèle GB et encodages sauvegardés")

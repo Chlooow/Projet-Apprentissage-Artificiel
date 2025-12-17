@@ -1,6 +1,8 @@
 # Projet-Apprentissage-Artificiel
 Dans le cadre du cours Apprentissage Artificiel 2025-2026
 
+lien github : https://github.com/Chlooow/Projet-Apprentissage-Artificiel
+
 ## Informations
 **Chef de projet etudiant:** Chloé Nsonde Makoundou 
 **Manager** : Madame Rakia Jaziri
